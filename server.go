@@ -12,9 +12,11 @@ import (
 )
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		panic(err)
+	if os.Getenv("PROD") != "true" {
+		err := godotenv.Load()
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	//connect db
