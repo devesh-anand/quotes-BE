@@ -1,3 +1,6 @@
+//go:build !production && production
+// +build !production,production
+
 package main
 
 import (
@@ -12,12 +15,7 @@ import (
 )
 
 func main() {
-	if os.Getenv("PROD") != "true" {
-		err := godotenv.Load()
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
+	godotenv.Load()
 
 	//connect db
 	con, conerr := db.GetConnection()
