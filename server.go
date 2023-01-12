@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/joho/godotenv"
 
@@ -25,7 +26,7 @@ func main() {
 
 	//router and endpoints
 	r := routes.SetupRouter()
-	r.Run()
+	r.Run(os.Getenv("PORT"))
 
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		log.Fatal(err)
