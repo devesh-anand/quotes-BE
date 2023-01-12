@@ -1,6 +1,3 @@
-//go:build !production && production
-// +build !production,production
-
 package main
 
 import (
