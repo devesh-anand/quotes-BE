@@ -1,33 +1,33 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
-	// "github.com/gin-gonic/gin"
+
+	"github.com/joho/godotenv"
+
+	"quotes-BE/db"
+	"quotes-BE/routes"
 )
 
 func main() {
-	// r := gin.Default()
-	//routes
-	http.HandleFunc("/", helloHandler)
-	fmt.Printf("server on port 8080")
+	err := godotenv.Load()
+	if err != nil {
+		panic(err)
+	}
+
+	//connect db
+	con, conerr := db.GetConnection()
+	if conerr != nil {
+		panic(conerr)
+	}
+	defer con.Close()
+
+	//router and endpoints
+	r := routes.SetupRouter()
+	r.Run()
 
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		log.Fatal(err)
 	}
-}
-
-func helloHandler(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/" {
-		http.Error(w, "404 not found.", http.StatusNotFound)
-		return
-	}
-
-	if r.Method != "GET" {
-		http.Error(w, "Method is not supported.", http.StatusNotFound)
-		return
-	}
-
-	fmt.Fprintf(w, "Hello World!")
 }
