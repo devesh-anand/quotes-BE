@@ -2,8 +2,11 @@ package routes
 
 import (
 	"fmt"
+	"log"
 
 	"quotes-BE/db"
+
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -15,6 +18,12 @@ type Quote struct {
 	Sub_by string `json:"sub_by"`
 	Date   string `json:"date"`
 	Active int    `json:"active"`
+}
+
+type PostData struct {
+	Quote  string `json:"quote"`
+	Author string `json:"author"`
+	Sub_by string `json:"sub_by"`
 }
 
 func SetupRouter() *gin.Engine {
@@ -35,6 +44,9 @@ func SetupRouter() *gin.Engine {
 	})
 
 	r.GET("/quotes", quotesHandler)
+
+	r.POST("/submitquote", submitQuote)
+
 	return r
 }
 
@@ -76,4 +88,48 @@ func quotesHandler(c *gin.Context) {
 		qts = append(qts, q)
 	}
 	c.JSONP(200, qts)
+}
+
+func submitQuote(c *gin.Context) {
+	var userQuote PostData
+	if c.BindJSON(&userQuote) == nil {
+		con, conerr := db.GetConnection()
+		if conerr != nil {
+			panic(conerr)
+		}
+		defer con.Close()
+
+		check, err := con.Query("select * from quotes where quote=?", userQuote.Quote)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		if check.Next() {
+			// row found
+			c.JSON(http.StatusBadRequest, gin.H{
+				"status":  "error",
+				"message": "Already Exists",
+			})
+			return
+		} else {
+			// no row found
+			quotes, err := con.Query("insert into quotes (quote, author, sub_by, active) values (?, ?, ?, 0)", userQuote.Quote, userQuote.Author, userQuote.Sub_by)
+			if err != nil {
+				panic(err)
+			}
+			defer quotes.Close()
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"status": "success",
+			"data":   userQuote,
+		})
+		return
+	} else {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  "error",
+			"message": "Invalid JSON format",
+		})
+		return
+	}
 }
