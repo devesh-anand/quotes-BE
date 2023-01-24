@@ -13,7 +13,7 @@ func SetupRouter() *gin.Engine {
 	r := gin.Default()
 
 	r.Use(cors.New(cors.Config{
-		AllowOrigins: []string{"https://quotes.deveshanand.com"},
+		AllowOrigins: []string{"https://quotes.deveshanand.com", "http://quotes.deveshanand.com"},
 		// AllowOrigins:     []string{"http://localhost:3000", "https://quotes.deveshanand.com"},
 		AllowMethods:     []string{"OPTIONS", "POST", "PUT", "PATCH", "DELETE"},
 		AllowHeaders:     []string{"Content-Type", "X-XSRF-TOKEN", "Accept", "X-Requested-With", "Authorization", "Origin"},
