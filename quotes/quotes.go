@@ -31,7 +31,7 @@ func QuotesHandler(c *gin.Context) {
 	}
 	defer con.Close()
 
-	quotes, err := con.Query("select * from quotes")
+	quotes, err := con.Query("select * from quotes where active=1")
 	if err != nil {
 		panic(err)
 	}
