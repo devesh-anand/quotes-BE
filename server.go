@@ -7,12 +7,16 @@ import (
 
 	"github.com/joho/godotenv"
 
-	"quotes-BE/db"
-	"quotes-BE/routes"
+	"api.deveshanand.com/db"
+	"api.deveshanand.com/quotes/cron"
+	"api.deveshanand.com/routes"
 )
 
 func main() {
 	godotenv.Load()
+
+	//cron to add a quote every 6 days so as to prevent db from sleeping
+	cron.SubmitCron()
 
 	//connect db
 	con, conerr := db.GetConnection()

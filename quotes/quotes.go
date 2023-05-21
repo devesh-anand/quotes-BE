@@ -3,25 +3,12 @@ package quotes
 import (
 	"log"
 	"net/http"
-	"quotes-BE/db"
+
+	"api.deveshanand.com/db"
+	types "api.deveshanand.com/quotes/types"
 
 	"github.com/gin-gonic/gin"
 )
-
-type Quote struct {
-	Id     int    `json:"id"`
-	Quote  string `json:"quote"`
-	Author string `json:"author"`
-	Sub_by string `json:"sub_by"`
-	Date   string `json:"date"`
-	Active int    `json:"active"`
-}
-
-type PostData struct {
-	Quote  string `json:"quote"`
-	Author string `json:"author"`
-	Sub_by string `json:"sub_by"`
-}
 
 func QuotesHandler(c *gin.Context) {
 	//connect db
@@ -37,7 +24,7 @@ func QuotesHandler(c *gin.Context) {
 	}
 	defer quotes.Close()
 
-	var qts []Quote
+	var qts []types.Quote
 	for quotes.Next() {
 		var (
 			id     int
@@ -48,7 +35,7 @@ func QuotesHandler(c *gin.Context) {
 			active int
 		)
 		_ = quotes.Scan(&id, &quote, &author, &sub_by, &date, &active)
-		q := Quote{Id: id, Quote: quote, Author: author, Sub_by: sub_by, Date: date, Active: active}
+		q := types.Quote{Id: id, Quote: quote, Author: author, Sub_by: sub_by, Date: date, Active: active}
 
 		qts = append(qts, q)
 	}
@@ -56,7 +43,7 @@ func QuotesHandler(c *gin.Context) {
 }
 
 func SubmitQuote(c *gin.Context) {
-	var userQuote PostData
+	var userQuote types.PostData
 	if c.BindJSON(&userQuote) == nil {
 		con, conerr := db.GetConnection()
 		if conerr != nil {
@@ -78,11 +65,7 @@ func SubmitQuote(c *gin.Context) {
 			return
 		} else {
 			// no row found
-			quotes, err := con.Query("insert into quotes (quote, author, sub_by, active) values (?, ?, ?, 0)", userQuote.Quote, userQuote.Author, userQuote.Sub_by)
-			if err != nil {
-				panic(err)
-			}
-			defer quotes.Close()
+			AddQuote(userQuote, 0)
 		}
 
 		c.JSON(http.StatusOK, gin.H{
@@ -97,4 +80,18 @@ func SubmitQuote(c *gin.Context) {
 		})
 		return
 	}
+}
+
+func AddQuote(quote types.PostData, active int){
+	con, conerr := db.GetConnection()
+	if conerr != nil {
+		panic(conerr)
+	}
+	defer con.Close()
+
+	quotes, err := con.Query("insert into quotes (quote, author, sub_by, active) values (?, ?, ?, ?)", quote.Quote, quote.Author, quote.Sub_by, active)
+	if err != nil {
+		panic(err)
+	}
+	defer quotes.Close()
 }

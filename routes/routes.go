@@ -3,7 +3,7 @@ package routes
 import (
 	"fmt"
 
-	"quotes-BE/quotes"
+	"api.deveshanand.com/quotes"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"

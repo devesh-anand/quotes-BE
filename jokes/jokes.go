@@ -3,7 +3,8 @@ package jokes
 import (
 	"log"
 	"net/http"
-	"quotes-BE/db"
+
+	"api.deveshanand.com/db"
 
 	"github.com/gin-gonic/gin"
 )
