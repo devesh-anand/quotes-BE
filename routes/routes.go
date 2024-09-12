@@ -33,6 +33,8 @@ func SetupRouter() *gin.Engine {
 
 	//Quotes routes
 	r.GET("/quotes", quotes.QuotesHandler)
+	r.GET("/authors", quotes.GetAllAuthors)
+
 	r.POST("/quote", quotes.SubmitQuote)
 
 	return r

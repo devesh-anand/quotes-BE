@@ -1,6 +1,8 @@
 package quotes
 
 import (
+	"database/sql"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -18,7 +20,22 @@ func QuotesHandler(c *gin.Context) {
 	}
 	defer con.Close()
 
-	quotes, err := con.Query("select * from quotes where active=1")
+	author := c.Query("author")
+	date := c.Query("date")
+
+	var quotes *sql.Rows
+	var err error
+	if author != "" && date != "" {
+		quotes, err = con.Query("select * from quotes where author=? and date=?", author, date)
+	} else if author != "" {
+		fmt.Println("author is not empty")
+		quotes, err = con.Query("select * from quotes where author LIKE ? AND active=1", author)
+	} else if date != "" {
+		quotes, err = con.Query("select * from quotes where date=? AND active=1", date)
+	} else {
+		quotes, err = con.Query("select * from quotes where active=1")
+	}
+
 	if err != nil {
 		panic(err)
 	}
@@ -82,7 +99,7 @@ func SubmitQuote(c *gin.Context) {
 	}
 }
 
-func AddQuote(quote types.PostData, active int){
+func AddQuote(quote types.PostData, active int) {
 	con, conerr := db.GetConnection()
 	if conerr != nil {
 		panic(conerr)
@@ -94,4 +111,26 @@ func AddQuote(quote types.PostData, active int){
 		panic(err)
 	}
 	defer quotes.Close()
+}
+
+func GetAllAuthors(c *gin.Context) {
+	con, conerr := db.GetConnection()
+	if conerr != nil {
+		panic(conerr)
+	}
+	defer con.Close()
+
+	authors, err := con.Query("select distinct author from quotes where active=1")
+	if err != nil {
+		panic(err)
+	}
+	defer authors.Close()
+
+	var auths []string
+	for authors.Next() {
+		var author string
+		_ = authors.Scan(&author)
+		auths = append(auths, author)
+	}
+	c.JSONP(200, auths)
 }
