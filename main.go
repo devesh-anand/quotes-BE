@@ -2,21 +2,27 @@ package main
 
 import (
 	"log"
-	"net/http"
 	"os"
 
 	"github.com/joho/godotenv"
 
 	"api.deveshanand.com/db"
-	"api.deveshanand.com/quotes/cron"
 	"api.deveshanand.com/routes"
 )
 
 func main() {
-	godotenv.Load()
+	if err := godotenv.Load(); err != nil {
+		log.Println("Warning: .env file not found")
+	}
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		log.Fatal("PORT environment variable is not set")
+	}
 
 	//cron to add a quote every 6 days so as to prevent db from sleeping
-	cron.SubmitCron()
+	// not needed as we are using turso db
+	// cron.SubmitCron()
 
 	//connect db
 	con, conerr := db.GetConnection()
@@ -27,9 +33,9 @@ func main() {
 
 	//router and endpoints
 	r := routes.SetupRouter()
-	r.Run(":" + os.Getenv("PORT"))
-
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+	
+	log.Printf("Server starting on port %s\n", port)
+	if err := r.Run(":" + port); err != nil {
 		log.Fatal(err)
 	}
 }
